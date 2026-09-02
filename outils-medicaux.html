@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outils Médicaux / Medical Tools</title>
+<style>
+  :root{
+    --bg:#f4f7f8;
+    --card-bg:#ffffff;
+    --text:#1e2b30;
+    --text-soft:#5c6f75;
+    --border:#e3eaec;
+    --shadow:0 2px 10px rgba(30,60,70,0.06);
+    --shadow-hover:0 6px 20px rgba(30,60,70,0.12);
+    --accent:#2f8f8a;
+    --accent-soft:#eaf4f3;
+    --blue:#5b8db8;
+    --blue-soft:#eaf1f8;
+    --teal:#3fa7a0;
+    --teal-soft:#e8f6f4;
+    --purple:#8b7fc7;
+    --purple-soft:#f0edfa;
+    --rose:#c98a9a;
+    --rose-soft:#faeef1;
+    --amber:#c9a24a;
+    --amber-soft:#faf3e3;
+    --good:#3f9f6e;
+    --good-bg:#e9f7ef;
+    --warn:#c98a3a;
+    --warn-bg:#fbf1e2;
+    --bad:#c1554f;
+    --bad-bg:#fbeceb;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px;
+    background:rgba(244,247,248,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  .app-title{
+    display:flex;align-items:center;gap:10px;
+    font-size:1.05rem;font-weight:600;letter-spacing:.2px;
+  }
+  .app-title .logo{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--teal),var(--blue));
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-size:1.1rem;
+  }
+  .lang-toggle{
+    display:flex;align-items:center;gap:6px;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:4px;
+    box-shadow:var(--shadow);
+  }
+  .lang-toggle button{
+    border:none;background:transparent;
+    padding:6px 14px;border-radius:999px;
+    font-size:.85rem;font-weight:600;
+    color:var(--text-soft);
+    cursor:pointer;
+    transition:all .18s ease;
+  }
+  .lang-toggle button.active{
+    background:var(--accent);
+    color:white;
+  }
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:32px 20px 64px;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--text-soft);
+    font-size:.95rem;
+    margin-bottom:32px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+  }
+  .card{
+    background:var(--card-bg);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px;
+    cursor:pointer;
+    border:1px solid var(--border);
+    transition:transform .18s ease, box-shadow .18s ease;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-hover);
+  }
+  .card .icon-badge{
+    width:48px;height:48px;
+    border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.4rem;
+  }
+  .card h3{
+    margin:0;
+    font-size:1.02rem;
+    font-weight:600;
+  }
+  .card p{
+    margin:0;
+    font-size:.85rem;
+    color:var(--text-soft);
+    line-height:1.4;
+  }
+  .badge-teal{background:var(--teal-soft);color:var(--teal);}
+  .badge-blue{background:var(--blue-soft);color:var(--blue);}
+  .badge-purple{background:var(--purple-soft);color:var(--purple);}
+  .badge-rose{background:var(--rose-soft);color:var(--rose);}
+  .badge-amber{background:var(--amber-soft);color:var(--amber);}
+
+  /* Overlay & Modal */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(20,30,35,0.35);
+    backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    opacity:0;pointer-events:none;
+    transition:opacity .22s ease;
+    z-index:100;
+  }
+  .overlay.open{opacity:1;pointer-events:all;}
+  .modal{
+    background:var(--card-bg);
+    border-radius:20px;
+    max-width:520px;
+    width:100%;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:28px;
+    box-shadow:0 20px 60px rgba(20,30,35,0.25);
+    transform:scale(.92);
+    transition:transform .22s ease;
+  }
+  .overlay.open .modal{transform:scale(1);}
+  .modal-header{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    margin-bottom:18px;
+    gap:10px;
+  }
+  .modal-header h2{
+    margin:0;font-size:1.15rem;font-weight:700;
+  }
+  .close-btn{
+    background:var(--bg);
+    border:none;
+    width:32px;height:32px;
+    border-radius:50%;
+    font-size:1rem;
+    cursor:pointer;
+    color:var(--text-soft);
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease;
+  }
+  .close-btn:hover{background:var(--border);}
+
+  .field-group{margin-bottom:16px;}
+  label{
+    display:block;
+    font-size:.82rem;
+    font-weight:600;
+    color:var(--text-soft);
+    margin-bottom:6px;
+  }
+  input[type="number"], select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--bg);
+    font-size:.95rem;
+    color:var(--text);
+    font-family:inherit;
+  }
+  input[type="number"]:focus, select:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  .row2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .unit-select{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:18px;
+    font-size:.82rem;
+    color:var(--text-soft);
+  }
+  .unit-select select{width:auto;padding:6px 10px;font-size:.82rem;}
+
+  .btn-primary{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    background:var(--accent);
+    color:white;
+    font-size:.95rem;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:6px;
+    transition:background .15s ease;
+  }
+  .btn-primary:hover{background:#267a76;}
+
+  .result-box{
+    margin-top:18px;
+    padding:16px;
+    border-radius:14px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    display:none;
+  }
+  .result-box.show{display:block;}
+  .result-value{
+    font-size:1.5rem;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .result-interpretation{
+    font-size:.88rem;
+    padding:10px 12px;
+    border-radius:10px;
+    font-weight:600;
+    margin-top:8px;
+  }
+  .interp-good{background:var(--good-bg);color:var(--good);}
+  .interp-warn{background:var(--warn-bg);color:var(--warn);}
+  .interp-bad{background:var(--bad-bg);color:var(--bad);}
+
+  .alert-box{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:10px;
+    background:var(--bad-bg);
+    color:var(--bad);
+    font-size:.85rem;
+    font-weight:700;
+    display:none;
+    align-items:center;
+    gap:8px;
+  }
+  .alert-box.show{display:flex;}
+
+  /* GCS / Apgar option buttons */
+  .option-group{margin-bottom:16px;}
+  .option-group-title{
+    font-size:.82rem;font-weight:700;color:var(--text);
+    margin-bottom:8px;
+  }
+  .options{
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .option-btn{
+    text-align:left;
+    padding:9px 12px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--bg);
+    cursor:pointer;
+    font-size:.85rem;
+    color:var(--text);
+    transition:all .15s ease;
+  }
+  .option-btn:hover{border-color:var(--accent);}
+  .option-btn.selected{
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    color:var(--accent);
+    font-weight:600;
+  }
+
+  .apgar-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.82rem;
+    margin-bottom:14px;
+  }
+  .apgar-table th, .apgar-table td{
+    padding:6px 4px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+  }
+  .apgar-table th:first-child, .apgar-table td:first-child{
+    text-align:left;
+  }
+  .apgar-table select{padding:5px 4px;font-size:.8rem;}
+
+  footer{
+    text-align:center;
+    padding:20px;
+    font-size:.75rem;
+    color:var(--text-soft);
+  }
+
+  @media (max-width:480px){
+    .modal{padding:20px;}
+    .app-title span.full{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="app-title">
+    <div class="logo">⚕</div>
+    <span data-i18n="appTitle">Outils Médicaux</span>
+  </div>
+  <div class="lang-toggle">
+    <button id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<main>
+  <p class="subtitle" data-i18n="subtitle">Une suite d'outils cliniques rapides pour usage quotidien</p>
+
+  <div class="grid">
+    <div class="card" onclick="openModal('bmi')">
+      <div class="icon-badge badge-teal">⚖️</div>
+      <h3 data-i18n="card1Title">Calculateur IMC</h3>
+      <p data-i18n="card1Desc">Indice de masse corporelle et catégorie</p>
+    </div>
+
+    <div class="card" onclick="openModal('bsa')">
+      <div class="icon-badge badge-blue">📐</div>
+      <h3 data-i18n="card2Title">Surface corporelle</h3>
+      <p data-i18n="card2Desc">Formule de Mosteller (m²)</p>
+    </div>
+
+    <div class="card" onclick="openModal('gcs')">
+      <div class="icon-badge badge-purple">🧠</div>
+      <h3 data-i18n="card3Title">Score de Glasgow</h3>
+      <p data-i18n="card3Desc">Évaluation de l'état de conscience</p>
+    </div>
+
+    <div class="card" onclick="openModal('apgar')">
+      <div class="icon-badge badge-rose">👶</div>
+      <h3 data-i18n="card4Title">Score APGAR</h3>
+      <p data-i18n="card4Desc">Évaluation néonatale à 1 et 5 min</p>
+    </div>
+
+    <div class="card" onclick="openModal('crcl')">
+      <div class="icon-badge badge-amber">🩸</div>
+      <h3 data-i18n="card5Title">Clairance créatinine</h3>
+      <p data-i18n="card5Desc">Formule de Cockcroft-Gault</p>
+    </div>
+  </div>
+</main>
+
+<footer data-i18n="footerNote">Outil d'aide clinique — ne remplace pas un avis médical professionnel.</footer>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeOnOverlay(event)">
+
+  <!-- BMI MODAL -->
+  <div class="modal" id="modal-bmi" style="display:none;">
+    <div class="modal-header">
+      <h2 data-i18n="card1Title">Calculateur IMC</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="unit-select">
+      <span data-i18n="unitLabel">Unités :</span>
+      <select id="bmi-unit" onchange="updateBmiUnitLabels()">
+        <option value="metric" data-i18n="unitMetric">Métrique (kg/cm)</option>
+        <option value="imperial" data-i18n="unitImperial">Impérial (lb/pouces)</option>
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="field-group">
+        <label id="bmi-weight-label" data-i18n="weightLabel">Poids (kg)</label>
+        <input type="number" id="bmi-weight" placeholder="70" step="0.1">
+      </div>
+      <div class="field-group">
+        <label id="bmi-height-label" data-i18n="heightLabel">Taille (cm)</label>
+        <input type="number" id="bmi-height" placeholder="175" step="0.1">
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="calcBmi()" data-i18n="calcBtn">Calculer</button>
+
+    <div class="result-box" id="bmi-result">
+      <div class="result-value" id="bmi-value"></div>
+      <div class="result-interpretation" id="bmi-interp"></div>
+    </div>
+  </div>
+
+  <!-- BSA MODAL -->
+  <div class="modal" id="modal-bsa" style="display:none;">
+    <div class="modal-header">
+      <h2 data-i18n="card2Title">Surface corporelle</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="unit-select">
+      <span data-i18n="unitLabel">Unités :</span>
+      <select id="bsa-unit" onchange="updateBsaUnitLabels()">
+        <option value="metric" data-i18n="unitMetric">Métrique (kg/cm)</option>
+        <option value="imperial" data-i18n="unitImperial">Impérial (lb/pouces)</option>
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="field-group">
+        <label id="bsa-weight-label" data-i18n="weightLabel">Poids (kg)</label>
+        <input type="number" id="bsa-weight" placeholder="70" step="0.1">
+      </div>
+      <div class="field-group">
+        <label id="bsa-height-label" data-i18n="heightLabel">Taille (cm)</label>
+        <input type="number" id="bsa-height" placeholder="175" step="0.1">
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="calcBsa()" data-i18n="calcBtn">Calculer</button>
+
+    <div class="result-box" id="bsa-result">
+      <div class="result-value" id="bsa-value"></div>
+      <div class="result-interpretation interp-good" id="bsa-interp" data-i18n="bsaInterpText">Résultat exprimé en mètres carrés (m²), formule de Mosteller.</div>
+    </div>
+  </div>
+
+  <!-- GCS MODAL -->
+  <div class="modal" id="modal-gcs" style="display:none;">
+    <div class="modal-header">
+      <h2 data-i18n="card3Title">Score de Glasgow</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title" data-i18n="gcsEyeTitle">Ouverture des yeux</div>
+      <div class="options" id="gcs-eye"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title" data-i18n="gcsVerbalTitle">Réponse verbale</div>
+      <div class="options" id="gcs-verbal"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title" data-i18n="gcsMotorTitle">Réponse motrice</div>
+      <div class="options" id="gcs-motor"></div>
+    </div>
+
+    <div class="result-box show" id="gcs-result">
+      <div class="result-value" id="gcs-value">— / 15</div>
+      <div class="result-interpretation" id="gcs-interp"></div>
+      <div class="alert-box" id="gcs-alert">🚨 <span data-i18n="gcsAlert">Intubation à envisager</span></div>
+    </div>
+  </div>
+
+  <!-- APGAR MODAL -->
+  <div class="modal" id="modal-apgar" style="display:none;">
+    <div class="modal-header">
+      <h2 data-i18n="card4Title">Score APGAR</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <table class="apgar-table">
+      <thead>
+        <tr>
+          <th data-i18n="apgarCriterion">Critère</th>
+          <th data-i18n="apgar1min">1 min</th>
+          <th data-i18n="apgar5min">5 min</th>
+        </tr>
+      </thead>
+      <tbody id="apgar-body"></tbody>
+    </table>
+
+    <div class="result-box show" id="apgar-result">
+      <div class="result-value" id="apgar-value-1">1 min: — / 10</div>
+      <div class="result-interpretation" id="apgar-interp-1"></div>
+      <div class="result-value" id="apgar-value-5" style="margin-top:12px;">5 min: — / 10</div>
+      <div class="result-interpretation" id="apgar-interp-5"></div>
+    </div>
+  </div>
+
+  <!-- CRCL MODAL -->
+  <div class="modal" id="modal-crcl" style="display:none;">
+    <div class="modal-header">
+      <h2 data-i18n="card5Title">Clairance créatinine</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="unit-select">
+      <span data-i18n="unitLabel">Unités :</span>
+      <select id="crcl-unit" onchange="updateCrclUnitLabels()">
+        <option value="metric" data-i18n="unitMetricWeightOnly">Métrique (kg)</option>
+        <option value="imperial" data-i18n="unitImperialWeightOnly">Impérial (lb)</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label data-i18n="ageLabel">Âge (années)</label>
+      <input type="number" id="crcl-age" placeholder="65">
+    </div>
+
+    <div class="row2">
+      <div class="field-group">
+        <label id="crcl-weight-label" data-i18n="weightLabel">Poids (kg)</label>
+        <input type="number" id="crcl-weight" placeholder="70" step="0.1">
+      </div>
+      <div class="field-group">
+        <label data-i18n="sexLabel">Sexe</label>
+        <select id="crcl-sex">
+          <option value="male" data-i18n="sexMale">Homme</option>
+          <option value="female" data-i18n="sexFemale">Femme</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label data-i18n="creatinineLabel">Créatininémie (mg/L)</label>
+      <input type="number" id="crcl-creat" placeholder="9" step="0.1">
+    </div>
+
+    <button class="btn-primary" onclick="calcCrcl()" data-i18n="calcBtn">Calculer</button>
+
+    <div class="result-box" id="crcl-result">
+      <div class="result-value" id="crcl-value"></div>
+      <div class="result-interpretation" id="crcl-interp"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============ I18N ============ */
+const translations = {
+  fr: {
+    appTitle: "Outils Médicaux",
+    subtitle: "Une suite d'outils cliniques rapides pour usage quotidien",
+    footerNote: "Outil d'aide clinique — ne remplace pas un avis médical professionnel.",
+
+    card1Title: "Calculateur IMC",
+    card1Desc: "Indice de masse corporelle et catégorie",
+    card2Title: "Surface corporelle",
+    card2Desc: "Formule de Mosteller (m²)",
+    card3Title: "Score de Glasgow",
+    card3Desc: "Évaluation de l'état de conscience",
+    card4Title: "Score APGAR",
+    card4Desc: "Évaluation néonatale à 1 et 5 min",
+    card5Title: "Clairance créatinine",
+    card5Desc: "Formule de Cockcroft-Gault",
+
+    unitLabel: "Unités :",
+    unitMetric: "Métrique (kg/cm)",
+    unitImperial: "Impérial (lb/pouces)",
+    unitMetricWeightOnly: "Métrique (kg)",
+    unitImperialWeightOnly: "Impérial (lb)",
+    weightLabelKg: "Poids (kg)",
+    weightLabelLb: "Poids (lb)",
+    heightLabelCm: "Taille (cm)",
+    heightLabelIn: "Taille (pouces)",
+    weightLabel: "Poids (kg)",
+    heightLabel: "Taille (cm)",
+    calcBtn: "Calculer",
+
+    ageLabel: "Âge (années)",
+    sexLabel: "Sexe",
+    sexMale: "Homme",
+    sexFemale: "Femme",
+    creatinineLabel: "Créatininémie (mg/L)",
+
+    fillFields: "Veuillez remplir tous les champs avec des valeurs valides.",
+
+    bmiCatUnder: "Insuffisance pondérale",
+    bmiCatNormal: "Corpulence normale",
+    bmiCatOver: "Surpoids",
+    bmiCatObese: "Obésité",
+
+    bsaInterpText: "Résultat exprimé en mètres carrés (m²), formule de Mosteller.",
+
+    gcsEyeTitle: "Ouverture des yeux",
+    gcsVerbalTitle: "Réponse verbale",
+    gcsMotorTitle: "Réponse motrice",
+    gcsAlert: "Intubation à envisager",
+    gcsLight: "Traumatisme léger",
+    gcsModerate: "Traumatisme modéré",
+    gcsSevere: "Traumatisme sévère",
+    gcsSelectAll: "Sélectionnez les trois catégories pour obtenir le score.",
+
+    gcsEyeOptions: [
+      "4 – Spontanée",
+      "3 – À la demande / voix",
+      "2 – À la douleur",
+      "1 – Aucune ouverture"
+    ],
+    gcsVerbalOptions: [
+      "5 – Orientée",
+      "4 – Confuse",
+      "3 – Mots inappropriés",
+      "2 – Sons incompréhensibles",
+      "1 – Aucune réponse"
+    ],
+    gcsMotorOptions: [
+      "6 – Obéit aux ordres",
+      "5 – Localise la douleur",
+      "4 – Retrait à la douleur",
+      "3 – Flexion anormale (décortication)",
+      "2 – Extension anormale (décérébration)",
+      "1 – Aucune réponse"
+    ],
+
+    apgarCriterion: "Critère",
+    apgar1min: "1 min",
+    apgar5min: "5 min",
+    apgarCriteria: ["Coloration", "Fréquence cardiaque", "Réactivité", "Tonus musculaire", "Respiration"],
+    apgarOptions: [
+      ["0 – Bleue/pâle", "1 – Corps rose, extrémités bleues", "2 – Rose complet"],
+      ["0 – Absente", "1 – < 100/min", "2 – > 100/min"],
+      ["0 – Absente", "1 – Grimace", "2 – Cri vigoureux"],
+      ["0 – Flasque", "1 – Légère flexion", "2 – Mouvements actifs"],
+      ["0 – Absente", "1 – Lente/irrégulière", "2 – Vigoureuse, cri"]
+    ],
+    apgarNormal: "Normal",
+    apgarModerate: "Modérément déprimé",
+    apgarSevere: "Sévèrement déprimé",
+    apgarSelect: "Sélectionnez une valeur",
+
+    crclStageNormal: "Fonction rénale normale",
+    crclStageMild: "Insuffisance rénale légère",
+    crclStageModerate: "Insuffisance rénale modérée",
+    crclStageSevere: "Insuffisance rénale sévère",
+    crclStageEndStage: "Insuffisance rénale terminale",
+  },
+  en: {
+    appTitle: "Medical Tools",
+    subtitle: "A quick-access suite of clinical tools for everyday use",
+    footerNote: "Clinical support tool — not a substitute for professional medical advice.",
+
+    card1Title: "BMI Calculator",
+    card1Desc: "Body mass index and category",
+    card2Title: "Body Surface Area",
+    card2Desc: "Mosteller formula (m²)",
+    card3Title: "Glasgow Coma Scale",
+    card3Desc: "Level of consciousness assessment",
+    card4Title: "APGAR Score",
+    card4Desc: "Newborn assessment at 1 and 5 min",
+    card5Title: "Creatinine Clearance",
+    card5Desc: "Cockcroft-Gault formula",
+
+    unitLabel: "Units:",
+    unitMetric: "Metric (kg/cm)",
+    unitImperial: "Imperial (lb/inches)",
+    unitMetricWeightOnly: "Metric (kg)",
+    unitImperialWeightOnly: "Imperial (lb)",
+    weightLabelKg: "Weight (kg)",
+    weightLabelLb: "Weight (lb)",
+    heightLabelCm: "Height (cm)",
+    heightLabelIn: "Height (inches)",
+    weightLabel: "Weight (kg)",
+    heightLabel: "Height (cm)",
+    calcBtn: "Calculate",
+
+    ageLabel: "Age (years)",
+    sexLabel: "Sex",
+    sexMale: "Male",
+    sexFemale: "Female",
+    creatinineLabel: "Serum creatinine (mg/L)",
+
+    fillFields: "Please fill in all fields with valid values.",
+
+    bmiCatUnder: "Underweight",
+    bmiCatNormal: "Normal weight",
+    bmiCatOver: "Overweight",
+    bmiCatObese: "Obesity",
+
+    bsaInterpText: "Result expressed in square meters (m²), Mosteller formula.",
+
+    gcsEyeTitle: "Eye opening",
+    gcsVerbalTitle: "Verbal response",
+    gcsMotorTitle: "Motor response",
+    gcsAlert: "Intubation should be considered",
+    gcsLight: "Mild injury",
+    gcsModerate: "Moderate injury",
+    gcsSevere: "Severe injury",
+    gcsSelectAll: "Select all three categories to get the score.",
+
+    gcsEyeOptions: [
+      "4 – Spontaneous",
+      "3 – To speech",
+      "2 – To pain",
+      "1 – No opening"
+    ],
+    gcsVerbalOptions: [
+      "5 – Oriented",
+      "4 – Confused",
+      "3 – Inappropriate words",
+      "2 – Incomprehensible sounds",
+      "1 – No response"
+    ],
+    gcsMotorOptions: [
+      "6 – Obeys commands",
+      "5 – Localizes pain",
+      "4 – Withdraws from pain",
+      "3 – Abnormal flexion (decorticate)",
+      "2 – Abnormal extension (decerebrate)",
+      "1 – No response"
+    ],
+
+    apgarCriterion: "Criterion",
+    apgar1min: "1 min",
+    apgar5min: "5 min",
+    apgarCriteria: ["Color", "Heart rate", "Reflex irritability", "Muscle tone", "Respiration"],
+    apgarOptions: [
+      ["0 – Blue/pale", "1 – Body pink, extremities blue", "2 – Completely pink"],
+      ["0 – Absent", "1 – < 100/min", "2 – > 100/min"],
+      ["0 – No response", "1 – Grimace", "2 – Vigorous cry"],
+      ["0 – Limp", "1 – Some flexion", "2 – Active motion"],
+      ["0 – Absent", "1 – Slow/irregular", "2 – Good, crying"]
+    ],
+    apgarNormal: "Normal",
+    apgarModerate: "Moderately depressed",
+    apgarSevere: "Severely depressed",
+    apgarSelect: "Select a value",
+
+    crclStageNormal: "Normal kidney function",
+    crclStageMild: "Mild renal impairment",
+    crclStageModerate: "Moderate renal impairment",
+    crclStageSevere: "Severe renal impairment",
+    crclStageEndStage: "End-stage renal disease",
+  }
+};
+
+let currentLang = 'fr';
+
+function t(key){
+  return translations[currentLang][key];
+}
+
+function setLang(lang){
+  currentLang = lang;
+  document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.documentElement.lang = lang;
+
+  // Default unit follows language, unless user already interacted manually.
+  if (!bmiUnitManual) document.getElementById('bmi-unit').value = lang === 'fr' ? 'metric' : 'imperial';
+  if (!bsaUnitManual) document.getElementById('bsa-unit').value = lang === 'fr' ? 'metric' : 'imperial';
+  if (!crclUnitManual) document.getElementById('crcl-unit').value = lang === 'fr' ? 'metric' : 'imperial';
+
+  applyTranslations();
+  buildGcsOptions();
+  buildApgarTable();
+  updateBmiUnitLabels();
+  updateBsaUnitLabels();
+  updateCrclUnitLabels();
+
+  // Recompute displayed results if any calculation was already shown
+  if (document.getElementById('bmi-result').classList.contains('show')) calcBmi();
+  if (document.getElementById('bsa-result').classList.contains('show')) calcBsa();
+  if (document.getElementById('crcl-result').classList.contains('show')) calcCrcl();
+  updateGcsResult();
+  updateApgarResult();
+}
+
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if (translations[currentLang][key] !== undefined && typeof translations[currentLang][key] === 'string'){
+      el.textContent = translations[currentLang][key];
+    }
+  });
+}
+
+/* ============ MODAL HANDLING ============ */
+function openModal(name){
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
+  document.getElementById('modal-'+name).style.display='block';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+}
+function closeOnOverlay(e){
+  if (e.target.id === 'overlay') closeModal();
+}
+document.addEventListener('keydown', (e)=>{
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ============ UNIT HANDLING ============ */
+let bmiUnitManual = false;
+let bsaUnitManual = false;
+let crclUnitManual = false;
+
+document.getElementById('bmi-unit').addEventListener('change', ()=>{ bmiUnitManual = true; });
+document.getElementById('bsa-unit').addEventListener('change', ()=>{ bsaUnitManual = true; });
+document.getElementById('crcl-unit').addEventListener('change', ()=>{ crclUnitManual = true; });
+
+function updateBmiUnitLabels(){
+  const unit = document.getElementById('bmi-unit').value;
+  document.getElementById('bmi-weight-label').textContent = unit==='metric' ? t('weightLabelKg') : t('weightLabelLb');
+  document.getElementById('bmi-height-label').textContent = unit==='metric' ? t('heightLabelCm') : t('heightLabelIn');
+  document.getElementById('bmi-weight').placeholder = unit==='metric' ? '70' : '154';
+  document.getElementById('bmi-height').placeholder = unit==='metric' ? '175' : '69';
+}
+function updateBsaUnitLabels(){
+  const unit = document.getElementById('bsa-unit').value;
+  document.getElementById('bsa-weight-label').textContent = unit==='metric' ? t('weightLabelKg') : t('weightLabelLb');
+  document.getElementById('bsa-height-label').textContent = unit==='metric' ? t('heightLabelCm') : t('heightLabelIn');
+  document.getElementById('bsa-weight').placeholder = unit==='metric' ? '70' : '154';
+  document.getElementById('bsa-height').placeholder = unit==='metric' ? '175' : '69';
+}
+function updateCrclUnitLabels(){
+  const unit = document.getElementById('crcl-unit').value;
+  document.getElementById('crcl-weight-label').textContent = unit==='metric' ? t('weightLabelKg') : t('weightLabelLb');
+  document.getElementById('crcl-weight').placeholder = unit==='metric' ? '70' : '154';
+}
+
+/* ============ BMI ============ */
+function calcBmi(){
+  const unit = document.getElementById('bmi-unit').value;
+  let w = parseFloat(document.getElementById('bmi-weight').value);
+  let h = parseFloat(document.getElementById('bmi-height').value);
+  if (isNaN(w) || isNaN(h) || w<=0 || h<=0){
+    alert(t('fillFields'));
+    return;
+  }
+  let kg = w, cm = h;
+  if (unit === 'imperial'){
+    kg = w * 0.453592;
+    cm = h * 2.54;
+  }
+  const m = cm/100;
+  const bmi = kg / (m*m);
+
+  let catKey, interpClass;
+  if (bmi < 18.5){ catKey='bmiCatUnder'; interpClass='interp-warn'; }
+  else if (bmi < 25){ catKey='bmiCatNormal'; interpClass='interp-good'; }
+  else if (bmi < 30){ catKey='bmiCatOver'; interpClass='interp-warn'; }
+  else { catKey='bmiCatObese'; interpClass='interp-bad'; }
+
+  document.getElementById('bmi-value').textContent = bmi.toFixed(1) + ' kg/m²';
+  const interpEl = document.getElementById('bmi-interp');
+  interpEl.textContent = t(catKey);
+  interpEl.className = 'result-interpretation ' + interpClass;
+  document.getElementById('bmi-result').classList.add('show');
+}
+
+/* ============ BSA (Mosteller) ============ */
+function calcBsa(){
+  const unit = document.getElementById('bsa-unit').value;
+  let w = parseFloat(document.getElementById('bsa-weight').value);
+  let h = parseFloat(document.getElementById('bsa-height').value);
+  if (isNaN(w) || isNaN(h) || w<=0 || h<=0){
+    alert(t('fillFields'));
+    return;
+  }
+  let kg = w, cm = h;
+  if (unit === 'imperial'){
+    kg = w * 0.453592;
+    cm = h * 2.54;
+  }
+  const bsa = Math.sqrt((cm * kg) / 3600);
+
+  document.getElementById('bsa-value').textContent = bsa.toFixed(2) + ' m²';
+  document.getElementById('bsa-interp').textContent = t('bsaInterpText');
+  document.getElementById('bsa-result').classList.add('show');
+}
+
+/* ============ GCS ============ */
+let gcsSelected = { eye: null, verbal: null, motor: null };
+
+function buildGcsOptions(){
+  buildGcsGroup('gcs-eye', 'eye', t('gcsEyeOptions'), [4,3,2,1]);
+  buildGcsGroup('gcs-verbal', 'verbal', t('gcsVerbalOptions'), [5,4,3,2,1]);
+  buildGcsGroup('gcs-motor', 'motor', t('gcsMotorOptions'), [6,5,4,3,2,1]);
+}
+
+function buildGcsGroup(containerId, category, labels, values){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  labels.forEach((label, idx)=>{
+    const val = values[idx];
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = label;
+    if (gcsSelected[category] === val) btn.classList.add('selected');
+    btn.onclick = ()=>{
+      gcsSelected[category] = val;
+      buildGcsOptions();
+      updateGcsResult();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function updateGcsResult(){
+  const { eye, verbal, motor } = gcsSelected;
+  const resultEl = document.getElementById('gcs-value');
+  const interpEl = document.getElementById('gcs-interp');
+  const alertEl = document.getElementById('gcs-alert');
+
+  if (eye===null || verbal===null || motor===null){
+    resultEl.textContent = '— / 15';
+    interpEl.textContent = t('gcsSelectAll');
+    interpEl.className = 'result-interpretation';
+    alertEl.classList.remove('show');
+    return;
+  }
+
+  const total = eye + verbal + motor;
+  resultEl.textContent = total + ' / 15';
+
+  let interpClass, interpKey;
+  if (total >= 13){ interpKey='gcsLight'; interpClass='interp-good'; }
+  else if (total >= 9){ interpKey='gcsModerate'; interpClass='interp-warn'; }
+  else { interpKey='gcsSevere'; interpClass='interp-bad'; }
+
+  interpEl.textContent = t(interpKey);
+  interpEl.className = 'result-interpretation ' + interpClass;
+
+  if (total <= 8) alertEl.classList.add('show');
+  else alertEl.classList.remove('show');
+}
+
+/* ============ APGAR ============ */
+let apgarSelected = {
+  1: [null,null,null,null,null],
+  5: [null,null,null,null,null]
+};
+
+function buildApgarTable(){
+  const body = document.getElementById('apgar-body');
+  body.innerHTML = '';
+  const criteria = t('apgarCriteria');
+  const options = t('apgarOptions');
+
+  criteria.forEach((name, i)=>{
+    const tr = document.createElement('tr');
+
+    const tdName = document.createElement('td');
+    tdName.textContent = name;
+    tr.appendChild(tdName);
+
+    [1,5].forEach(timePoint=>{
+      const td = document.createElement('td');
+      const select = document.createElement('select');
+      const emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent = t('apgarSelect');
+      select.appendChild(emptyOpt);
+
+      options[i].forEach((label, val)=>{
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = label;
+        select.appendChild(opt);
+      });
+
+      const currentVal = apgarSelected[timePoint][i];
+      select.value = currentVal===null ? '' : currentVal;
+
+      select.onchange = (e)=>{
+        const v = e.target.value === '' ? null : parseInt(e.target.value);
+        apgarSelected[timePoint][i] = v;
+        updateApgarResult();
+      };
+
+      td.appendChild(select);
+      tr.appendChild(td);
+    });
+
+    body.appendChild(tr);
+  });
+}
+
+function updateApgarResult(){
+  [1,5].forEach(timePoint=>{
+    const values = apgarSelected[timePoint];
+    const valueEl = document.getElementById('apgar-value-' + timePoint);
+    const interpEl = document.getElementById('apgar-interp-' + timePoint);
+    const label = timePoint === 1 ? t('apgar1min') : t('apgar5min');
+
+    if (values.some(v=>v===null)){
+      valueEl.textContent = label + ': — / 10';
+      interpEl.textContent = '';
+      interpEl.className = 'result-interpretation';
+      return;
+    }
+
+    const total = values.reduce((a,b)=>a+b,0);
+    valueEl.textContent = label + ': ' + total + ' / 10';
+
+    let interpKey, interpClass;
+    if (total >= 7){ interpKey='apgarNormal'; interpClass='interp-good'; }
+    else if (total >= 4){ interpKey='apgarModerate'; interpClass='interp-warn'; }
+    else { interpKey='apgarSevere'; interpClass='interp-bad'; }
+
+    interpEl.textContent = t(interpKey);
+    interpEl.className = 'result-interpretation ' + interpClass;
+  });
+}
+
+/* ============ Creatinine Clearance (Cockcroft-Gault) ============ */
+function calcCrcl(){
+  const unit = document.getElementById('crcl-unit').value;
+  const age = parseFloat(document.getElementById('crcl-age').value);
+  let w = parseFloat(document.getElementById('crcl-weight').value);
+  const sex = document.getElementById('crcl-sex').value;
+  const creatMgL = parseFloat(document.getElementById('crcl-creat').value);
+
+  if (isNaN(age) || isNaN(w) || isNaN(creatMgL) || age<=0 || w<=0 || creatMgL<=0){
+    alert(t('fillFields'));
+    return;
+  }
+
+  let kg = w;
+  if (unit === 'imperial') kg = w * 0.453592;
+
+  // Creatininemia is entered in mg/L (FR/DZ standard); convert to µmol/L for the formula.
+  // 1 mg/L = 8.84 µmol/L
+  const creat = creatMgL * 8.84;
+
+  // Cockcroft-Gault, creatinine in µmol/L
+  let crcl = ((140 - age) * kg) / (0.814 * creat);
+  if (sex === 'female') crcl *= 0.85;
+
+  document.getElementById('crcl-value').textContent = crcl.toFixed(1) + ' mL/min';
+
+  let interpKey, interpClass;
+  if (crcl >= 90){ interpKey='crclStageNormal'; interpClass='interp-good'; }
+  else if (crcl >= 60){ interpKey='crclStageMild'; interpClass='interp-good'; }
+  else if (crcl >= 30){ interpKey='crclStageModerate'; interpClass='interp-warn'; }
+  else if (crcl >= 15){ interpKey='crclStageSevere'; interpClass='interp-bad'; }
+  else { interpKey='crclStageEndStage'; interpClass='interp-bad'; }
+
+  const interpEl = document.getElementById('crcl-interp');
+  interpEl.textContent = t(interpKey);
+  interpEl.className = 'result-interpretation ' + interpClass;
+  document.getElementById('crcl-result').classList.add('show');
+}
+
+/* ============ INIT ============ */
+window.onload = ()=>{
+  setLang('fr');
+};
+</script>
+
+</body>
+</html>

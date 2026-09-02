@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculatrice d'IMC</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4f6f8;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #222;
+    padding: 20px;
+  }
+
+  .card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 32px 28px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 24px;
+    text-align: center;
+    color: #1a1a1a;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  .unit-toggle {
+    display: inline-flex;
+    border: 1px solid #d0d5dc;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .unit-toggle button {
+    all: unset;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    color: #667;
+    background: #fff;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .unit-toggle button + button {
+    border-left: 1px solid #d0d5dc;
+  }
+
+  .unit-toggle button.active {
+    background: #3b82f6;
+    color: #fff;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid #d0d5dc;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input[type="number"]:focus {
+    border-color: #3b82f6;
+  }
+
+  button.primary {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: #3b82f6;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button.primary:hover {
+    background: #2563eb;
+  }
+
+  #result {
+    margin-top: 22px;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    display: none;
+  }
+
+  #result.visible {
+    display: block;
+  }
+
+  #result .imc-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  #result .imc-category {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .cat-insuffisance {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .cat-normal {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .cat-surpoids {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .cat-obesite {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .error {
+    color: #b91c1c;
+    font-size: 13px;
+    margin-top: -10px;
+    margin-bottom: 14px;
+    display: none;
+  }
+
+  .error.visible {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Calculatrice d'IMC</h1>
+
+  <div class="field">
+    <div class="label-row">
+      <label for="poids" id="poidsLabel">Poids (kg)</label>
+      <div class="unit-toggle" id="poidsToggle">
+        <button type="button" data-unit="kg" class="active" onclick="setPoidsUnit('kg')">kg</button>
+        <button type="button" data-unit="lb" onclick="setPoidsUnit('lb')">lb</button>
+      </div>
+    </div>
+    <input type="number" id="poids" placeholder="Ex: 70" min="1" step="0.1">
+  </div>
+
+  <div class="field">
+    <div class="label-row">
+      <label for="taille" id="tailleLabel">Taille (cm)</label>
+      <div class="unit-toggle" id="tailleToggle">
+        <button type="button" data-unit="cm" class="active" onclick="setTailleUnit('cm')">cm</button>
+        <button type="button" data-unit="po" onclick="setTailleUnit('po')">po</button>
+      </div>
+    </div>
+    <input type="number" id="taille" placeholder="Ex: 175" min="1" step="0.1">
+  </div>
+
+  <div class="error" id="error">Merci de saisir un poids et une taille valides.</div>
+
+  <button class="primary" onclick="calculerIMC()">Calculer</button>
+
+  <div id="result">
+    <div class="imc-value" id="imcValue"></div>
+    <div class="imc-category" id="imcCategory"></div>
+  </div>
+</div>
+
+<script>
+  const KG_PER_LB = 0.45359237;
+  const CM_PER_INCH = 2.54;
+
+  let poidsUnit = 'kg';
+  let tailleUnit = 'cm';
+
+  function setActiveButton(toggleId, unit) {
+    document.querySelectorAll('#' + toggleId + ' button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.unit === unit);
+    });
+  }
+
+  function setPoidsUnit(unit) {
+    if (unit === poidsUnit) return;
+    const input = document.getElementById('poids');
+    const val = parseFloat(input.value);
+    if (!isNaN(val)) {
+      const kg = poidsUnit === 'lb' ? val * KG_PER_LB : val;
+      input.value = (unit === 'lb' ? kg / KG_PER_LB : kg).toFixed(1);
+    }
+    poidsUnit = unit;
+    document.getElementById('poidsLabel').textContent = 'Poids (' + unit + ')';
+    input.placeholder = unit === 'lb' ? 'Ex: 154' : 'Ex: 70';
+    setActiveButton('poidsToggle', unit);
+  }
+
+  function setTailleUnit(unit) {
+    if (unit === tailleUnit) return;
+    const input = document.getElementById('taille');
+    const val = parseFloat(input.value);
+    if (!isNaN(val)) {
+      const cm = tailleUnit === 'po' ? val * CM_PER_INCH : val;
+      input.value = (unit === 'po' ? cm / CM_PER_INCH : cm).toFixed(1);
+    }
+    tailleUnit = unit;
+    document.getElementById('tailleLabel').textContent = 'Taille (' + unit + ')';
+    input.placeholder = unit === 'po' ? 'Ex: 69' : 'Ex: 175';
+    setActiveButton('tailleToggle', unit);
+  }
+
+  function calculerIMC() {
+    const poidsInput = parseFloat(document.getElementById('poids').value);
+    const tailleInput = parseFloat(document.getElementById('taille').value);
+    const errorEl = document.getElementById('error');
+    const resultEl = document.getElementById('result');
+
+    if (!poidsInput || !tailleInput || poidsInput <= 0 || tailleInput <= 0) {
+      errorEl.classList.add('visible');
+      resultEl.classList.remove('visible');
+      return;
+    }
+
+    errorEl.classList.remove('visible');
+
+    const poidsKg = poidsUnit === 'lb' ? poidsInput * KG_PER_LB : poidsInput;
+    const tailleCm = tailleUnit === 'po' ? tailleInput * CM_PER_INCH : tailleInput;
+    const tailleM = tailleCm / 100;
+    const imc = poidsKg / (tailleM * tailleM);
+
+    let categorie, className;
+    if (imc < 18.5) {
+      categorie = 'Insuffisance pondérale';
+      className = 'cat-insuffisance';
+    } else if (imc < 25) {
+      categorie = 'Poids normal';
+      className = 'cat-normal';
+    } else if (imc < 30) {
+      categorie = 'Surpoids';
+      className = 'cat-surpoids';
+    } else {
+      categorie = 'Obésité';
+      className = 'cat-obesite';
+    }
+
+    document.getElementById('imcValue').textContent = 'IMC : ' + imc.toFixed(1);
+    document.getElementById('imcCategory').textContent = categorie;
+
+    resultEl.className = 'visible ' + className;
+  }
+</script>
+
+</body>
+</html>
